@@ -1,0 +1,217 @@
+import { EnemyGroup } from "./src/gameobjs/enemy.js";
+import { Player } from "./src/gameobjs/player.js";
+
+
+export class Game extends Phaser.Scene {
+    constructor() {
+        super({ key: 'game' });
+    }
+
+    preload()
+    {
+        this.load.image('bulletTexture', 'assets/bulletTexture.png');
+        this.load.image('blood', 'assets/blood.png');
+        this.load.image('player','assets/playertexture.png');
+        this.load.image('enemy','assets/enemytexture.png');
+    }
+
+    create()
+    {
+
+        this.totalEnemies = 5;
+        this.spawnIndex = 0; 
+        this.killedCount = 0;
+
+        this.fpsText = this.add.text(10, 50, 'FPS: ' , {
+            font: '22px Arial',
+            fill: '#ffffff'
+        });
+
+        this.killcountText = this.add.text(10, 80, 'kill count: ' , {
+            font: '22px Arial',
+            fill: '#ffffff'
+        });
+
+        this.wave = 1;
+
+        this.input.setDefaultCursor('none');
+
+        this.colors = [0x3d03fc, 0x808080, 0x6a608f, 0xb0544d, 0x4aba61];
+        
+
+        this.player = new Player(this, 500,500, 'player', 'blood');
+        this.player.shoot(this);
+
+        this.enemygrp = new EnemyGroup(this, 'enemy', 'blood');
+
+        this.spawnEnemies();
+       
+        this.waveText = this.add.text(10, 10, 'WAVE: ' + this.wave, {
+            font: '32px Arial',
+            fill: '#ffffff'
+        });
+
+
+        this.physics.add.overlap(this.enemygrp, this.player.getBulletGroup(), (enemy, bullet) => {
+            if (enemy.active) 
+            {
+                bullet.setActive(false);
+                bullet.setVisible(false);
+                if(enemy.receiveDamage())
+                {
+                    this.killedCount++;
+                }
+            }
+        });
+        
+
+        this.physics.add.overlap(this.player, this.enemygrp.getEnemiesBulletGroup(), (player,bullet) => {
+            if(player.active)
+            {
+                bullet.setActive(false);
+                bullet.setVisible(false);
+                player.receiveDamage();
+                console.log(this.player.health);
+            }
+            
+        });
+    
+        
+        this.physics.add.overlap(this.player, this.enemygrp, (player,bullet) => {
+            if(player.active)
+            {
+                bullet.setActive(false);
+                bullet.setVisible(false);
+                player.receiveDamage();
+                console.log(this.player.health);
+            }
+        });
+
+        this.startTime = this.time.now; // Current time when the game starts
+        this.elapsedTime = 0; // Total elapsed time
+        this.timeText = this.add.text(10, 120, 'TIME: 0:00', {
+            font: '22px Arial',
+            fill: '#ffffff'
+        });
+
+        
+    }
+
+    update()
+    {
+
+        if (this.player.health <= 0) return;
+
+        this.getTime();
+
+        const fps = this.game.loop.actualFps;
+
+        this.fpsText.setText('FPS: ' + Math.round(fps));
+
+        this.player.aim();
+        this.player.move();    
+        
+        for(var i = 0; i < this.totalEnemies; i++)
+        {
+            this.enemygrp.handleEnemyAttacks(this.player.body);
+        }
+    
+        
+        this.killcountText.setText('killed count: ' + this.killedCount);
+
+        this.resetHitFlags();
+       
+        
+
+        if (this.killedCount >= this.totalEnemies) 
+        {
+            // Increment the wave number
+            this.wave++;
+            this.killedCount = 0;
+            this.waveText.setText('WAVE: ' + this.wave);
+    
+            // Delay before spawning new enemies
+            this.time.delayedCall(3000, () => {
+                this.spawnEnemies();
+            }, [], this);
+        }
+        
+    }
+
+    spawnEnemies() 
+    {
+        let numberOfEnemiesToSpawn = Math.min(20, 5 + Math.floor(this.wave / 5) * 5);
+        this.spawnIndex = 0; 
+        this.totalEnemies = numberOfEnemiesToSpawn; 
+
+        const spawnEnemy = () => {
+            if (this.spawnIndex < this.totalEnemies) 
+            {
+                let rX, rY;
+                // Ensure random position doesn't conflict with player position or existing enemies
+                do {
+                    rX = this.getRandomInt(20, 1280);
+                    rY = this.getRandomInt(20, 720);
+                } while (this.isPositionOccupied(rX, rY));
+
+                this.enemygrp.spawnEnemy(rX, rY, this.wave);
+                this.spawnIndex++;
+
+                // Call the next enemy spawn after a short delay
+                this.time.delayedCall(1250, spawnEnemy, [], this); // Adjust the delay as needed (e.g., 500 ms)
+            } 
+
+        };
+
+        spawnEnemy(); 
+    }
+
+    
+    isPositionOccupied(x, y) 
+    {
+        // Check if the player is near the position
+        const distanceToPlayer = Phaser.Math.Distance.Between(x, y, this.player.x, this.player.y);
+        if (distanceToPlayer < 100) return true; // Adjust distance threshold as needed
+
+        // Check if there are any active enemies at the position
+        return this.enemygrp.getChildren().some(enemy => {
+            return enemy.active && Phaser.Math.Distance.Between(x, y, enemy.x, enemy.y) < 50; // Adjust threshold as needed
+        });
+    }
+        
+    resetHitFlags()
+    {
+
+        this.enemygrp.resetFlags();
+        
+        this.player.hit = false;
+    }
+
+
+    getRandomInt(min, max) 
+    {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    
+
+    getTime() 
+    {
+        // If the player is killed, we don't update the timer
+        if (this.player.health <= 0)  
+        {
+            this.timeText.setText(`TIME SURVIVED: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`);
+            return;
+        }
+    
+        this.elapsedTime = Math.floor((this.time.now - this.startTime) / 1000);
+    
+        const minutes = Math.floor(this.elapsedTime / 60);
+        const seconds = this.elapsedTime % 60;
+    
+        // Update the time display
+        this.timeText.setText(`TIME: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`);
+    }
+    
+}
+
+
