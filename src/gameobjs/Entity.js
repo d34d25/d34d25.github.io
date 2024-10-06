@@ -23,8 +23,6 @@ export class Entity extends Phaser.Physics.Arcade.Sprite
 
         this.hit = false;
 
-        this.killed = false;
-
         this.bloodSprite = this.scene.add.sprite(this.x + this.width / 2, this.y + this.height / 2, textureB);
         this.bloodSprite.setVisible(false); // Start hidden
     }
@@ -62,7 +60,7 @@ export class Entity extends Phaser.Physics.Arcade.Sprite
     {
         if(this.hit) return false;
 
-        this.health -= 10;
+        this.health -= 35;
 
         if(this.health <= 0)
         {
@@ -70,6 +68,8 @@ export class Entity extends Phaser.Physics.Arcade.Sprite
         }
 
         this.hit = true;     
+
+        console.log(this.health);
     }
 
     getBulletGroup()

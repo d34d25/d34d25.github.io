@@ -53,9 +53,8 @@ class Bullet extends Phaser.Physics.Arcade.Sprite
 
         this.body.reset(centerX, centerY);
         
-        this.setActive(true);
-        this.setVisible(true);
-        this.body.setEnable(true);
+        this.activateBullet();
+
         this.setVelocity(xV, yV);
 
     }
@@ -72,13 +71,26 @@ class Bullet extends Phaser.Physics.Arcade.Sprite
     
         if (isOffScreen) 
         {
-            this.setActive(false);
-            this.setVisible(false);
-            this.body.setEnable(false);
+           this.deactivateBullet();
             //console.log('Bullet active:', this.active);
         }
     }
     
+
+    activateBullet()
+    {
+        this.setActive(true);
+        this.setVisible(true);
+        this.body.setEnable(true);
+    }
+
+    deactivateBullet()
+    {
+        this.setActive(false);
+        this.setVisible(false);
+        this.body.setEnable(false);
+    }
+
     
     
 }

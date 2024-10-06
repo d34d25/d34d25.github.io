@@ -20,7 +20,6 @@ export class Player extends Entity
 
     aim()
     {
-        if(this.health <= 0) return;
 
         const mouseX = this.scene.input.activePointer.x;
         const mouseY = this.scene.input.activePointer.y;
@@ -39,8 +38,6 @@ export class Player extends Entity
 
     shoot(scene) 
     {
-
-        if(this.health <= 0) return;
 
         scene.input.on('pointerdown', pointer => {
 
@@ -68,7 +65,6 @@ export class Player extends Entity
 
     move()
     {
-        if(this.health <= 0) return;
         
         const body = this.body;
 

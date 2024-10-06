@@ -17,6 +17,9 @@ export class Game extends Phaser.Scene {
 
     create()
     {
+        this.input.keyboard.on('keydown-R', () => {
+            this.restartScene();
+        });
 
         this.totalEnemies = 5;
         this.spawnIndex = 0; 
@@ -26,11 +29,13 @@ export class Game extends Phaser.Scene {
             font: '22px Arial',
             fill: '#ffffff'
         });
+        this.fpsText.setDepth(5);
 
         this.killcountText = this.add.text(10, 80, 'kill count: ' , {
             font: '22px Arial',
             fill: '#ffffff'
         });
+        this.killcountText.setDepth(5);
 
         this.wave = 1;
 
@@ -50,13 +55,19 @@ export class Game extends Phaser.Scene {
             font: '32px Arial',
             fill: '#ffffff'
         });
+        this.waveText.setDepth(5);
 
+
+        this.restartText = this.add.text((1280/2) - 100, (720/2) - 100, '' , {
+            font: '32px Arial',
+            fill: '#ffffff'
+        });
+        this.restartText.setDepth(5);
 
         this.physics.add.overlap(this.enemygrp, this.player.getBulletGroup(), (enemy, bullet) => {
             if (enemy.active) 
             {
-                bullet.setActive(false);
-                bullet.setVisible(false);
+                bullet.deactivateBullet();
                 if(enemy.receiveDamage())
                 {
                     this.killedCount++;
@@ -68,8 +79,7 @@ export class Game extends Phaser.Scene {
         this.physics.add.overlap(this.player, this.enemygrp.getEnemiesBulletGroup(), (player,bullet) => {
             if(player.active)
             {
-                bullet.setActive(false);
-                bullet.setVisible(false);
+                bullet.deactivateBullet();
                 player.receiveDamage();
                 console.log(this.player.health);
             }
@@ -77,11 +87,10 @@ export class Game extends Phaser.Scene {
         });
     
         
-        this.physics.add.overlap(this.player, this.enemygrp, (player,bullet) => {
+        this.physics.add.overlap(this.player, this.enemygrp, (player) => {
             if(player.active)
             {
-                bullet.setActive(false);
-                bullet.setVisible(false);
+                player.body.setEnable(false);
                 player.receiveDamage();
                 console.log(this.player.health);
             }
@@ -93,20 +102,26 @@ export class Game extends Phaser.Scene {
             font: '22px Arial',
             fill: '#ffffff'
         });
-
+        this.timeText.setDepth(5);
         
     }
 
     update()
     {
-
-        if (this.player.health <= 0) return;
+    
+        if (this.player.health <= 0)
+        {
+            this.restartText.setText('You died! \n Press R to Restart');
+            return;
+        } 
 
         this.getTime();
 
         const fps = this.game.loop.actualFps;
 
         this.fpsText.setText('FPS: ' + Math.round(fps));
+
+        
 
         this.player.aim();
         this.player.move();    
@@ -140,9 +155,8 @@ export class Game extends Phaser.Scene {
 
     spawnEnemies() 
     {
-        let numberOfEnemiesToSpawn = Math.min(20, 5 + Math.floor(this.wave / 5) * 5);
         this.spawnIndex = 0; 
-        this.totalEnemies = numberOfEnemiesToSpawn; 
+        this.totalEnemies = Math.min(20, 5 + Math.floor(this.wave / 5) * 5);
 
         const spawnEnemy = () => {
             if (this.spawnIndex < this.totalEnemies) 
@@ -175,15 +189,14 @@ export class Game extends Phaser.Scene {
 
         // Check if there are any active enemies at the position
         return this.enemygrp.getChildren().some(enemy => {
-            return enemy.active && Phaser.Math.Distance.Between(x, y, enemy.x, enemy.y) < 50; // Adjust threshold as needed
+            return enemy.active && Phaser.Math.Distance.Between(x, y, enemy.x, enemy.y) < 100; // Adjust threshold as needed
         });
     }
         
     resetHitFlags()
     {
-
         this.enemygrp.resetFlags();
-        
+        this.player.body.setEnable(true);
         this.player.hit = false;
     }
 
@@ -212,6 +225,11 @@ export class Game extends Phaser.Scene {
         this.timeText.setText(`TIME: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`);
     }
     
+
+    restartScene() 
+    {
+        this.scene.restart();
+    }
 }
 
 

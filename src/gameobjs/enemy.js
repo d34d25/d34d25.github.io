@@ -105,11 +105,12 @@ export class Enemy extends Entity
 
 
         this.body.reset(x,y);
-        this.health = 100; 
-        this.killed = false;
+        this.health = 100;
+        
         this.setActive(true);
         this.setVisible(true);
         this.body.setEnable(true);
+
         this.bloodTexture = bloodTexture;
     }
 
@@ -128,14 +129,7 @@ export class Enemy extends Entity
         }
     }
 
-    reset(x, y)
-    {
-        this.rekt.setPosition(x, y);
-        this.health = 100; 
-        this.setBehaviorType();
-        this.lastShotTime = 0;
-
-    }
+  
     
     attack(target)
     {
@@ -259,3 +253,11 @@ export class Enemy extends Entity
 }
 
 
+ /* reset(x, y)
+    {
+        this.rekt.setPosition(x, y);
+        this.health = 100; 
+        this.setBehaviorType();
+        this.lastShotTime = 0;
+
+    }*/
