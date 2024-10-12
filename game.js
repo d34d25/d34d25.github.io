@@ -13,10 +13,15 @@ export class Game extends Phaser.Scene {
         this.load.image('blood', 'assets/blood.png');
         this.load.image('player','assets/playertexture.png');
         this.load.image('enemy','assets/enemytexture.png');
+        this.load.image('bulletTexture_b', 'assets/bulletTextureb.png');
+        this.load.image('sample_p', 'assets/samplePlayer.png');
+        this.load.image('bg', 'assets/sampleBackground.jpg')
     }
 
     create()
     {
+        this.add.image(1280/2,720/2,'bg');
+
         this.input.keyboard.on('keydown-R', () => {
             this.restartScene();
         });
@@ -25,18 +30,7 @@ export class Game extends Phaser.Scene {
         this.spawnIndex = 0; 
         this.killedCount = 0;
 
-        this.fpsText = this.add.text(10, 50, 'FPS: ' , {
-            font: '22px Arial',
-            fill: '#ffffff'
-        });
-        this.fpsText.setDepth(5);
-
-        this.killcountText = this.add.text(10, 80, 'kill count: ' , {
-            font: '22px Arial',
-            fill: '#ffffff'
-        });
-        this.killcountText.setDepth(5);
-
+        
         this.wave = 1;
 
         this.input.setDefaultCursor('none');
@@ -44,65 +38,19 @@ export class Game extends Phaser.Scene {
         this.colors = [0x3d03fc, 0x808080, 0x6a608f, 0xb0544d, 0x4aba61];
         
 
-        this.player = new Player(this, 500,500, 'player', 'blood');
+        this.player = new Player(this, 500,500, 'sample_p', 'blood', 'bulletTexture');
         this.player.shoot(this);
 
-        this.enemygrp = new EnemyGroup(this, 'enemy', 'blood');
+        this.enemygrp = new EnemyGroup(this, 'enemy', 'blood', 'bulletTexture_b');
 
-        this.spawnEnemies();
-       
-        this.waveText = this.add.text(10, 10, 'WAVE: ' + this.wave, {
-            font: '32px Arial',
-            fill: '#ffffff'
-        });
-        this.waveText.setDepth(5);
+        this.spawnEnemies(); 
 
-
-        this.restartText = this.add.text((1280/2) - 100, (720/2) - 100, '' , {
-            font: '32px Arial',
-            fill: '#ffffff'
-        });
-        this.restartText.setDepth(5);
-
-        this.physics.add.overlap(this.enemygrp, this.player.getBulletGroup(), (enemy, bullet) => {
-            if (enemy.active) 
-            {
-                bullet.deactivateBullet();
-                if(enemy.receiveDamage())
-                {
-                    this.killedCount++;
-                }
-            }
-        });
-        
-
-        this.physics.add.overlap(this.player, this.enemygrp.getEnemiesBulletGroup(), (player,bullet) => {
-            if(player.active)
-            {
-                bullet.deactivateBullet();
-                player.receiveDamage();
-                console.log(this.player.health);
-            }
-            
-        });
-    
-        
-        this.physics.add.overlap(this.player, this.enemygrp, (player) => {
-            if(player.active)
-            {
-                player.body.setEnable(false);
-                player.receiveDamage();
-                console.log(this.player.health);
-            }
-        });
-
+        this.addOverlaps();
+              
         this.startTime = this.time.now; // Current time when the game starts
         this.elapsedTime = 0; // Total elapsed time
-        this.timeText = this.add.text(10, 120, 'TIME: 0:00', {
-            font: '22px Arial',
-            fill: '#ffffff'
-        });
-        this.timeText.setDepth(5);
+       
+        this.addText();
         
     }
 
@@ -128,7 +76,7 @@ export class Game extends Phaser.Scene {
         
         for(var i = 0; i < this.totalEnemies; i++)
         {
-            this.enemygrp.handleEnemyAttacks(this.player.body);
+           this.enemygrp.handleEnemyAttacks(this.player.body);
         }
     
         
@@ -197,7 +145,7 @@ export class Game extends Phaser.Scene {
     {
         this.enemygrp.resetFlags();
         this.player.body.setEnable(true);
-        this.player.hit = false;
+        this.player.hit = false; //has to be false
     }
 
 
@@ -229,6 +177,76 @@ export class Game extends Phaser.Scene {
     restartScene() 
     {
         this.scene.restart();
+    }
+
+
+    addText()
+    {
+        this.fpsText = this.add.text(10, 50, 'FPS: ' , {
+            font: '22px Arial',
+            fill: '#ffffff'
+        });
+        this.fpsText.setDepth(5);
+
+        this.killcountText = this.add.text(10, 80, 'kill count: ' , {
+            font: '22px Arial',
+            fill: '#ffffff'
+        });
+        this.killcountText.setDepth(5);
+
+        this.waveText = this.add.text(10, 10, 'WAVE: ' + this.wave, {
+            font: '32px Arial',
+            fill: '#ffffff'
+        });
+        this.waveText.setDepth(5);
+        
+        this.restartText = this.add.text((1280/2) - 100, (720/2) - 100, '' , {
+            font: '32px Arial',
+            fill: '#ffffff'
+        });
+        this.restartText.setDepth(5);
+
+        this.timeText = this.add.text(10, 120, 'TIME: 0:00', {
+            font: '22px Arial',
+            fill: '#ffffff'
+        });
+        this.timeText.setDepth(5);
+    }
+
+    addOverlaps()
+    {
+        this.physics.add.overlap(this.enemygrp, this.player.getBulletGroup(), (enemy, bullet) => {
+            if (enemy.active) 
+            {
+                bullet.deactivateBullet();
+                if(enemy.receiveDamage())
+                {
+                    this.killedCount++;
+                }
+            }
+        });
+        
+
+        this.physics.add.overlap(this.player, this.enemygrp.getEnemiesBulletGroup(), (player,bullet) => {
+            if(player.active)
+            {
+                bullet.deactivateBullet();
+                player.receiveDamage();
+                console.log(this.player.health);
+            }
+            
+        });
+    
+        
+        this.physics.add.overlap(this.player, this.enemygrp, (player) => {
+            if(player.active)
+            {
+                player.body.setEnable(false);
+                player.receiveDamage();
+                console.log(this.player.health);
+            }
+        });
+
     }
 }
 

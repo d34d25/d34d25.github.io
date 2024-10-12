@@ -3,13 +3,17 @@ import { Entity } from "./Entity.js";
 
 export class Player extends Entity
 {
-    constructor(scene, x, y, texture, textureB)
+    constructor(scene, x, y, texture, textureB, bulletTexture)
     {
-        super(scene, x, y, texture, textureB);
+        super(scene, x, y, texture, textureB, bulletTexture);
         
+        this.body.setSize(16, 30);
+
         this.graphics = this.scene.add.graphics();
 
         this.graphics.setDepth(3);
+
+        this.movingRight = false;
 
         this.wKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
         this.aKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
@@ -96,6 +100,25 @@ export class Player extends Entity
         {
             directionX /= magnitude;
             directionY /= magnitude;
+        }
+
+        if(directionX > 0)
+        {
+            this.movingRight = true;
+        }
+        else if (directionX < 0)
+        {
+            this.movingRight = false;
+        }
+
+
+        if(this.movingRight)
+        {
+            this.flipX = true;
+        }
+        else
+        {
+            this.flipX = false;
         }
 
         body.setVelocityX(directionX * moveSpeed);

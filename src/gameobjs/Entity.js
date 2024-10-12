@@ -3,12 +3,11 @@ import { BulletGroup } from "./bullets/bulletGroup.js";
 export class Entity extends Phaser.Physics.Arcade.Sprite 
 {
     
-    constructor(scene, x, y, texture, textureB) 
+    constructor(scene, x, y, texture, textureB, bulletTexture) 
     {
-
         super(scene, x, y, texture);
 
-        this.setDepth(1);
+        this.setDepth(2);
         this.scene = scene;
 
 
@@ -19,7 +18,7 @@ export class Entity extends Phaser.Physics.Arcade.Sprite
 
         this.health = 100;
 
-        this.bulletGroup = new BulletGroup(this.scene);
+        this.bulletGroup = new BulletGroup(this.scene, bulletTexture);
 
         this.hit = false;
 

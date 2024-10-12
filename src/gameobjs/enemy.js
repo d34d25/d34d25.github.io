@@ -4,16 +4,17 @@ import { Entity } from "./Entity.js";
 
 export class EnemyGroup extends Phaser.Physics.Arcade.Group 
 {
-    constructor(scene, enemyTexture, bloodTexture) 
+    constructor(scene, enemyTexture, bloodTexture, bulletTexture) 
     {
         super(scene.physics.world, scene);
         
         this.enemyTexture = enemyTexture;
         this.bloodTexture = bloodTexture;
+        this.bulletTexture = bulletTexture;
 
         for (let i = 0; i < 20; i++)
         { 
-            const enemy = new Enemy(scene, 0, 0, this.enemyTexture, this.bloodTexture);
+            const enemy = new Enemy(scene, 0, 0, this.enemyTexture, this.bloodTexture, this.bulletTexture);
             enemy.setActive(false);
             enemy.setVisible(false);
             enemy.body.setEnable(false);
@@ -74,9 +75,9 @@ export class EnemyGroup extends Phaser.Physics.Arcade.Group
 
 export class Enemy extends Entity
 {
-    constructor(scene, x, y, texture, textureB)
+    constructor(scene, x, y, texture, textureB, bulletTexture)
     {
-        super(scene, x, y, texture, textureB);
+        super(scene, x, y, texture, textureB, bulletTexture);
 
         this.lastShotTime = 0;
         this.shootDelay = 1200;
@@ -134,8 +135,6 @@ export class Enemy extends Entity
     attack(target)
     {
         if (this.health <= 0) return;
-
-     
 
         switch(this.behaviorType)
         {

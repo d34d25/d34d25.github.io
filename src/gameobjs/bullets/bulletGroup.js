@@ -1,6 +1,6 @@
 export class BulletGroup extends Phaser.Physics.Arcade.Group 
 {
-    constructor(scene) 
+    constructor(scene, texture) 
     {
         super(scene.physics.world, scene);
 
@@ -10,7 +10,7 @@ export class BulletGroup extends Phaser.Physics.Arcade.Group
             frameQuantity: 30,
             active: false,
             visible: false,
-            key: 'bulletTexture',
+            key: texture,
         });
 
         //console.log("created: " + this.getLength());
@@ -28,16 +28,19 @@ export class BulletGroup extends Phaser.Physics.Arcade.Group
 
     getBullet()
     {
-        return this.get();
+        const bullets = this.getChildren();
+    
+        return bullets.map(bullet => bullet.getBulletGroup()).filter(group => group);
     }
 }
 
 class Bullet extends Phaser.Physics.Arcade.Sprite 
 {
-    constructor(scene, x, y) 
+    constructor(scene, x, y, texture) 
     {
-        super(scene, x, y, 'bulletTexture');
-        this.setDepth(2);
+
+        super(scene, x, y, texture);
+        this.setDepth(1);
         this.scene = scene;
 
         this.scene.add.existing(this);

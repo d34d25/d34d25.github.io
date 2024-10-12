@@ -2,8 +2,8 @@ import { Game } from "./game.js";
 
 const config = {
     type: Phaser.AUTO,
-    width: 1280,
-    height: 720,
+    width: 1280, //1280
+    height: 720, //720
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
