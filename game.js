@@ -1,9 +1,12 @@
 import { EnemyGroup } from "./src/gameobjs/enemy.js";
+import { Entity } from "./src/gameobjs/Entity.js";
 import { Player } from "./src/gameobjs/player.js";
 
 
-export class Game extends Phaser.Scene {
-    constructor() {
+export class Game extends Phaser.Scene 
+{
+    constructor() 
+    {
         super({ key: 'game' });
     }
 
@@ -16,11 +19,26 @@ export class Game extends Phaser.Scene {
         this.load.image('bulletTexture_b', 'assets/bulletTextureb.png');
         this.load.image('sample_p', 'assets/samplePlayer.png');
         this.load.image('bg', 'assets/sampleBackground.jpg')
+        this.load.image('wall', 'assets/wallsample.png');
     }
 
     create()
     {
+       
+
+        this.minutes;
+
+        this.seconds;
+
         this.add.image(1280/2,720/2,'bg');
+
+        //wall
+        this.wall = new Entity(this, 1280/2, 94, 'wall', null,null);
+        this.wall.setDepth(0);
+        this.wall.setCollideWorldBounds(false);
+        this.wall.setImmovable(true);
+        this.wall.setOffset(0,-94);
+        
 
         this.input.keyboard.on('keydown-R', () => {
             this.restartScene();
@@ -45,7 +63,7 @@ export class Game extends Phaser.Scene {
 
         this.spawnEnemies(); 
 
-        this.addOverlaps();
+        this.addCollisions();
               
         this.startTime = this.time.now; // Current time when the game starts
         this.elapsedTime = 0; // Total elapsed time
@@ -59,7 +77,10 @@ export class Game extends Phaser.Scene {
     
         if (this.player.health <= 0)
         {
+            this.timeText.setText(`TIME SURVIVED: ${this.minutes}:${this.seconds < 10 ? '0' : ''}${this.seconds}`);
+
             this.restartText.setText('You died! \n Press R to Restart');
+            
             return;
         } 
 
@@ -72,15 +93,20 @@ export class Game extends Phaser.Scene {
         
 
         this.player.aim();
-        this.player.move();    
+        this.player.move();
+
+        const playerX = this.player.x;
+        const playerY = this.player.y;
+
+        this.posText.setText(`Position: ${playerX.toFixed(2)}, ${playerY.toFixed(2)}`);
         
         for(var i = 0; i < this.totalEnemies; i++)
         {
-           this.enemygrp.handleEnemyAttacks(this.player.body);
+            this.enemygrp.handleEnemyAttacks(this.player.body);
         }
     
         
-        this.killcountText.setText('killed count: ' + this.killedCount);
+        this.killcountText.setText('Enemies killed: ' + this.killedCount);
 
         this.resetHitFlags();
        
@@ -112,15 +138,15 @@ export class Game extends Phaser.Scene {
                 let rX, rY;
                 // Ensure random position doesn't conflict with player position or existing enemies
                 do {
-                    rX = this.getRandomInt(20, 1280);
-                    rY = this.getRandomInt(20, 720);
+                    rX = this.getRandomInt(20, 1260);
+                    rY = this.getRandomInt(200, 700);
                 } while (this.isPositionOccupied(rX, rY));
 
                 this.enemygrp.spawnEnemy(rX, rY, this.wave);
                 this.spawnIndex++;
 
                 // Call the next enemy spawn after a short delay
-                this.time.delayedCall(1250, spawnEnemy, [], this); // Adjust the delay as needed (e.g., 500 ms)
+                this.time.delayedCall(1250, spawnEnemy, [], this);
             } 
 
         };
@@ -157,20 +183,14 @@ export class Game extends Phaser.Scene {
 
     getTime() 
     {
-        // If the player is killed, we don't update the timer
-        if (this.player.health <= 0)  
-        {
-            this.timeText.setText(`TIME SURVIVED: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`);
-            return;
-        }
-    
+      
         this.elapsedTime = Math.floor((this.time.now - this.startTime) / 1000);
     
-        const minutes = Math.floor(this.elapsedTime / 60);
-        const seconds = this.elapsedTime % 60;
+        this.minutes = Math.floor(this.elapsedTime / 60);
+        this.seconds = this.elapsedTime % 60;
     
         // Update the time display
-        this.timeText.setText(`TIME: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`);
+        this.timeText.setText(`TIME: ${this.minutes}:${this.seconds < 10 ? '0' : ''}${this.seconds}`);
     }
     
 
@@ -188,7 +208,7 @@ export class Game extends Phaser.Scene {
         });
         this.fpsText.setDepth(5);
 
-        this.killcountText = this.add.text(10, 80, 'kill count: ' , {
+        this.killcountText = this.add.text(10, 80, 'Enemies Killed: ' , {
             font: '22px Arial',
             fill: '#ffffff'
         });
@@ -211,10 +231,20 @@ export class Game extends Phaser.Scene {
             fill: '#ffffff'
         });
         this.timeText.setDepth(5);
+
+        this.posText = this.add.text(10, 140, 'Pos: ', {
+            font: '22px Arial',
+            fill: '#ffffff'
+        });
+        this.timeText.setDepth(5);
     }
 
-    addOverlaps()
+    addCollisions()
     {
+
+        this.physics.add.collider(this.player, this.wall);
+
+
         this.physics.add.overlap(this.enemygrp, this.player.getBulletGroup(), (enemy, bullet) => {
             if (enemy.active) 
             {

@@ -10,8 +10,8 @@ export class Entity extends Phaser.Physics.Arcade.Sprite
         this.setDepth(2);
         this.scene = scene;
 
-
         this.scene.add.existing(this);
+        
         this.scene.physics.world.enable(this);
 
         this.setCollideWorldBounds(true);

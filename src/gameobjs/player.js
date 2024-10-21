@@ -28,6 +28,8 @@ export class Player extends Entity
         const mouseX = this.scene.input.activePointer.x;
         const mouseY = this.scene.input.activePointer.y;
 
+        const body = this.body;
+
         this.graphics.clear();
         
         this.graphics.lineStyle(2, 0xff0000, 1); 
@@ -37,6 +39,25 @@ export class Player extends Entity
         this.graphics.fillStyle(0xff0000, 1);
         
         this.graphics.fillCircle(mouseX, mouseY, 2);
+
+        if(mouseX <= body.x)
+        {
+            this.movingRight = false;
+        }
+        else
+        {
+            this.movingRight = true;
+        }
+
+        
+        if(this.movingRight)
+        {
+            this.flipX = true;
+        }
+        else
+        {
+            this.flipX = false;
+        }
         
     }
 
@@ -66,6 +87,7 @@ export class Player extends Entity
             this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,dir[0] * bulletSpeed, dir[1] * bulletSpeed);
         });
     }
+    
 
     move()
     {
@@ -102,27 +124,29 @@ export class Player extends Entity
             directionY /= magnitude;
         }
 
-        if(directionX > 0)
-        {
-            this.movingRight = true;
-        }
-        else if (directionX < 0)
-        {
-            this.movingRight = false;
-        }
 
 
-        if(this.movingRight)
-        {
-            this.flipX = true;
-        }
-        else
-        {
-            this.flipX = false;
-        }
+        this.playAinamtion();
 
         body.setVelocityX(directionX * moveSpeed);
         body.setVelocityY(directionY * moveSpeed);
+    }
+
+    playAinamtion()
+    {
+        const body = this.body;
+
+        if (body.velocity.x !== 0 || body.velocity.y !== 0) 
+        {
+            // Use a sine wave for wobbling effect
+            this.rotation += Math.sin(Date.now() / 100) * 0.025; // Adjust the divisor for speed of wobble
+        } 
+        else 
+        {
+            this.rotation = 0; 
+        }
+
+        this.rotation = Math.max(-5, Math.min(5, this.rotation)); 
     }
 
     receiveDamage()
