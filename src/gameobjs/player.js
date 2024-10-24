@@ -13,8 +13,6 @@ export class Player extends Entity
 
         this.graphics.setDepth(3);
 
-        this.movingRight = false;
-
         this.wKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
         this.aKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
         this.sKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
@@ -132,22 +130,7 @@ export class Player extends Entity
         body.setVelocityY(directionY * moveSpeed);
     }
 
-    playAinamtion()
-    {
-        const body = this.body;
-
-        if (body.velocity.x !== 0 || body.velocity.y !== 0) 
-        {
-            // Use a sine wave for wobbling effect
-            this.rotation += Math.sin(Date.now() / 100) * 0.025; // Adjust the divisor for speed of wobble
-        } 
-        else 
-        {
-            this.rotation = 0; 
-        }
-
-        this.rotation = Math.max(-5, Math.min(5, this.rotation)); 
-    }
+   
 
     receiveDamage()
     {

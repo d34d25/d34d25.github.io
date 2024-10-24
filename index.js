@@ -23,7 +23,7 @@ var game = new Phaser.Game(config);
 function toggleFullscreen()
 {
     if (!document.fullscreenElement)
-        {
+    {
         document.documentElement.requestFullscreen();
     } 
     else

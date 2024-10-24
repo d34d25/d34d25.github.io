@@ -22,6 +22,8 @@ export class Entity extends Phaser.Physics.Arcade.Sprite
 
         this.hit = false;
 
+        this.movingRight = false;
+
         this.bloodSprite = this.scene.add.sprite(this.x + this.width / 2, this.y + this.height / 2, textureB);
         this.bloodSprite.setVisible(false); // Start hidden
     }
@@ -76,6 +78,23 @@ export class Entity extends Phaser.Physics.Arcade.Sprite
         return this.bulletGroup;
     }
 
+
+    playAinamtion()
+    {
+        const body = this.body;
+
+        if (body.velocity.x !== 0 || body.velocity.y !== 0) 
+        {
+            // Use a sine wave for wobbling effect
+            this.rotation += Math.sin(Date.now() / 100) * 0.025; // Adjust the divisor for speed of wobble
+        } 
+        else 
+        {
+            this.rotation = 0; 
+        }
+
+        this.rotation = Math.max(-5, Math.min(5, this.rotation)); 
+    }
 }
 
 

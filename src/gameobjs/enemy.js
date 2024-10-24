@@ -79,6 +79,8 @@ export class Enemy extends Entity
     {
         super(scene, x, y, texture, textureB, bulletTexture);
 
+        this.body.setSize(16, 30);
+
         this.lastShotTime = 0;
         this.shootDelay = 1200;
         
@@ -130,11 +132,46 @@ export class Enemy extends Entity
         }
     }
 
-  
+    playAinamtion()
+    {
+        const body = this.body;
+
+        if (body.velocity.x !== 0 || body.velocity.y !== 0) 
+        {
+            // Use a sine wave for wobbling effect
+            this.rotation += Math.sin(Date.now() / 100) * 0.005; // Adjust the divisor for speed of wobble
+        } 
+        else 
+        {
+            this.rotation = 0; 
+        }
+
+        this.rotation = Math.max(-5, Math.min(2, this.rotation)); 
+    }
     
     attack(target)
     {
         if (this.health <= 0) return;
+
+        this.playAinamtion();
+
+        if(target.x >= this.body.x)
+        {
+            this.movingRight = true;
+        }
+        else
+        {
+            this.movingRight = false;
+        }
+
+        if(this.movingRight)
+        {
+            this.flipX = true;
+        }
+        else
+        {
+            this.flipX = false;
+        }
 
         switch(this.behaviorType)
         {

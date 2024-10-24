@@ -20,6 +20,7 @@ export class Game extends Phaser.Scene
         this.load.image('sample_p', 'assets/samplePlayer.png');
         this.load.image('bg', 'assets/sampleBackground.jpg')
         this.load.image('wall', 'assets/wallsample.png');
+        this.load.image('sampleEnemy', 'assets/sampleEnemy.png');
     }
 
     create()
@@ -59,7 +60,7 @@ export class Game extends Phaser.Scene
         this.player = new Player(this, 500,500, 'sample_p', 'blood', 'bulletTexture');
         this.player.shoot(this);
 
-        this.enemygrp = new EnemyGroup(this, 'enemy', 'blood', 'bulletTexture_b');
+        this.enemygrp = new EnemyGroup(this, 'sampleEnemy', 'blood', 'bulletTexture_b');
 
         this.spawnEnemies(); 
 
