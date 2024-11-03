@@ -4,17 +4,18 @@ import { Entity } from "./Entity.js";
 
 export class EnemyGroup extends Phaser.Physics.Arcade.Group 
 {
-    constructor(scene, enemyTexture, bloodTexture, bulletTexture) 
+    constructor(scene, enemyTexture, bloodTexture, bulletTexture, spawnTexture) 
     {
         super(scene.physics.world, scene);
         
         this.enemyTexture = enemyTexture;
         this.bloodTexture = bloodTexture;
         this.bulletTexture = bulletTexture;
+        this.spawnTexture = spawnTexture;
 
         for (let i = 0; i < 20; i++)
         { 
-            const enemy = new Enemy(scene, 0, 0, this.enemyTexture, this.bloodTexture, this.bulletTexture);
+            const enemy = new Enemy(scene, 0, 0, this.enemyTexture, this.bloodTexture, this.bulletTexture, this.spawnTexture, 30);
             enemy.setActive(false);
             enemy.setVisible(false);
             enemy.body.setEnable(false);
@@ -32,9 +33,10 @@ export class EnemyGroup extends Phaser.Physics.Arcade.Group
 
         if (enemy) 
         {
-            enemy.spawn(x, y, this.bloodTexture, wave);
+            enemy.spawn(x, y, wave);
         }
     }
+
 
 
     handleEnemyAttacks(target) 
@@ -75,30 +77,49 @@ export class EnemyGroup extends Phaser.Physics.Arcade.Group
 
 export class Enemy extends Entity
 {
-    constructor(scene, x, y, texture, textureB, bulletTexture)
+    constructor(scene, x, y, texture, textureB, bulletTexture, textureC, bulletCount)
     {
-        super(scene, x, y, texture, textureB, bulletTexture);
+        super(scene, x, y, texture, textureB, bulletTexture, bulletCount);
 
         this.body.setSize(16, 30);
 
         this.lastShotTime = 0;
         this.shootDelay = 1200;
         
+        this.spawSprite = this.scene.add.sprite(this.x + this.width / 2, this.y + this.height / 2, textureC);
+        this.spawSprite.setActive(false);
+
+        this.spawSprite.setVisible(false);
+
         this.setBehaviorType();
+        
     }
 
-    spawn(x, y, bloodTexture, currentWave)
+   
+
+
+
+
+    spawn(x, y, currentWave)
     {
 
         var wave = currentWave;
 
-        if(wave < 6)
+        if(wave < 4)
         {
-            this.behaviorType = this.scene.getRandomInt(0, 1);
+            this.behaviorType = this.scene.getRandomInt(0,1);
+        }
+        else if (wave < 8)
+        {
+            this.behaviorType = this.scene.getRandomInt(0, 2);
+        }
+        else if (wave < 12)
+        {
+            this.behaviorType = this.scene.getRandomInt(0, 3);
         }
         else
         {
-            this.behaviorType = this.scene.getRandomInt(0, 4);
+            this.behaviorType = this.scene.getRandomInt(0, 5);
         }
 
         
@@ -108,13 +129,37 @@ export class Enemy extends Entity
 
 
         this.body.reset(x,y);
-        this.health = 100;
-        
-        this.setActive(true);
-        this.setVisible(true);
-        this.body.setEnable(true);
 
-        this.bloodTexture = bloodTexture;
+        this.spawSprite.setVisible(true);
+        this.spawSprite.setPosition(x,y);
+        this.body.setEnable(false);
+
+        const rotationInterval = setInterval(() => {
+            this.spawSprite.rotation += 0.1;
+        }, 1000 / 60);
+        
+
+        setTimeout(() => {
+
+            this.spawSprite.setVisible(false);
+
+            clearInterval(rotationInterval);
+
+            this.health = 100;
+        
+            this.setActive(true);
+            this.setVisible(true);
+            this.body.setEnable(true);
+            this.setCollideWorldBounds(true);
+
+            if (this.behaviorType === 'bounce') 
+            {
+                this.bounce();
+            }
+
+        }, 1000);
+
+        
     }
 
    
@@ -128,7 +173,8 @@ export class Enemy extends Entity
             case 1: this.behaviorType = 'track'; break;
             case 2: this.behaviorType = 'shoot'; break;
             case 3: this.behaviorType = 'all_shoot'; break;
-            case 4: this.behaviorType = 'maniac'; break;
+            case 4: this.behaviorType = 'bounce'; break;
+            case 5: this.behaviorType = 'maniac'; break;
         }
     }
 
@@ -194,6 +240,9 @@ export class Enemy extends Entity
                 const shootType_c = this.scene.getRandomInt(0, 2);
                 this.staynShoot(target, shootType_c);
                 break;
+            case 'bounce':
+                this.staynShoot(target,2);
+                break;
         }
     }
 
@@ -215,6 +264,24 @@ export class Enemy extends Entity
 
         body.setVelocityX(direction[0] * moveSpeed);
         body.setVelocityY(direction[1] * moveSpeed);
+    }
+
+    bounce()
+    {
+        const speed = 125;
+
+        // Get a random angle in radians
+        const randomAngle = this.scene.getRandomInt(0, 360) * (Math.PI / 180); // Convert degrees to radians
+    
+        // Calculate the x and y components of the velocity based on the angle
+        const velocityX = Math.cos(randomAngle) * speed;
+        const velocityY = Math.sin(randomAngle) * speed;
+    
+        // Set the velocity and bounce
+        this.body.setVelocity(velocityX, velocityY);
+
+        this.body.setBounce(1,1);
+        
     }
 
     staynShoot(target, type)
@@ -259,8 +326,7 @@ export class Enemy extends Entity
 
         const bulletSpeed = 200;
 
-        this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,dir[0] * bulletSpeed, dir[1] * bulletSpeed);
-    
+        this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,dir[0] * bulletSpeed, dir[1] * bulletSpeed, false);
     }
 
     pattern_b()
@@ -269,10 +335,10 @@ export class Enemy extends Entity
 
         const bulletSpeed = 200;
 
-        this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,bulletSpeed, 0);
-        this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,-bulletSpeed, 0);
-        this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,0, bulletSpeed);
-        this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,0, -bulletSpeed);
+        this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,bulletSpeed, 0, false);
+        this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,-bulletSpeed, 0, false);
+        this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,0, bulletSpeed, false);
+        this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,0, -bulletSpeed, false);
     }
 
     pattern_c()
@@ -281,19 +347,14 @@ export class Enemy extends Entity
 
         const bulletSpeed = 200;
 
-        this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,bulletSpeed, bulletSpeed);
-        this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,-bulletSpeed, bulletSpeed);
-        this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,bulletSpeed, -bulletSpeed);
-        this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,-bulletSpeed, -bulletSpeed);
+        this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,bulletSpeed, bulletSpeed, false);
+        this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,-bulletSpeed, bulletSpeed, false);
+        this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,bulletSpeed, -bulletSpeed, false);
+        this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,-bulletSpeed, -bulletSpeed, false);
     }
+
+    
 }
 
 
- /* reset(x, y)
-    {
-        this.rekt.setPosition(x, y);
-        this.health = 100; 
-        this.setBehaviorType();
-        this.lastShotTime = 0;
-
-    }*/
+ 

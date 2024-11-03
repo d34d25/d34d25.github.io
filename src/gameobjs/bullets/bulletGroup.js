@@ -1,36 +1,38 @@
 export class BulletGroup extends Phaser.Physics.Arcade.Group 
 {
-    constructor(scene, texture) 
+    constructor(scene, texture, bulletCount) 
     {
         super(scene.physics.world, scene);
 
-        // Create multiple instances of Bullet
         this.createMultiple({
             classType: Bullet,
-            frameQuantity: 30,
+            frameQuantity: bulletCount,
             active: false,
             visible: false,
             key: texture,
         });
 
-        //console.log("created: " + this.getLength());
+        console.log("created bullets : " + this.getLength());
     }
 
-    fireBullet(x, y, w, h, xV, yV) 
+    fireBullet(x, y, w, h, xV, yV, bounce) 
     {
         const bullet = this.getFirstDead();
 
         if (bullet) 
         {
-            bullet.fire(x, y, w, h, xV, yV);
+            bullet.fire(x, y, w, h, xV, yV, bounce);
+        }
+        else 
+        {
+            // Optionally, handle the case where all bullets are active
+            console.warn("No available bullets to fire!");
         }
     }
 
     getBullet()
     {
-        const bullets = this.getChildren();
-    
-        return bullets.map(bullet => bullet.getBulletGroup()).filter(group => group);
+        return this.getFirstAlive();
     }
 }
 
@@ -47,10 +49,19 @@ class Bullet extends Phaser.Physics.Arcade.Sprite
         this.scene.physics.world.enable(this);
 
         this.body.setCircle(10);
+
+        this.doBounce = false;
+        this.hasBounced = false;
+
+        this.bounceDuration = 6000; // Max time to bounce in milliseconds
+        this.bounceTimer = 0; // Timer to track bouncing time
     }
 
-    fire(x, y, w, h, xV, yV) 
+    fire(x, y, w, h, xV, yV, bounce) 
     {
+
+        this.hasBounced = false;
+
         var centerX = x + w / 2;
         var centerY = y + h / 2;
 
@@ -60,6 +71,7 @@ class Bullet extends Phaser.Physics.Arcade.Sprite
 
         this.setVelocity(xV, yV);
 
+        this.doBounce = bounce;
     }
 
     preUpdate(time, delta) 
@@ -72,10 +84,48 @@ class Bullet extends Phaser.Physics.Arcade.Sprite
                             this.x < -radius || 
                             this.x > this.scene.sys.game.config.width + radius;
     
-        if (isOffScreen) 
+
+        const isOffTop = this.y < -radius || 
+        this.y > this.scene.sys.game.config.height + radius;
+
+        const isOffSides = this.x < -radius || 
+        this.x > this.scene.sys.game.config.width + radius;
+
+        if (isOffScreen && !this.doBounce) 
         {
            this.deactivateBullet();
-            //console.log('Bullet active:', this.active);
+        }
+        else if (this.doBounce)
+        {
+            
+            if(isOffTop)
+            {
+                this.setVelocityY(-this.body.velocity.y);
+                this.hasBounced = true;
+            } 
+                
+            
+            if(isOffSides)
+            {
+                this.setVelocityX(-this.body.velocity.x);
+                this.hasBounced = true;
+            }
+                
+
+            if(this.hasBounced)
+            {
+                this.bounceTimer += delta;
+            }
+            else
+            {
+                this.bounceTimer = 0;
+            }
+           
+            if (this.bounceTimer > this.bounceDuration) 
+            {
+                this.deactivateBullet();
+            }
+            
         }
     }
     
@@ -92,6 +142,7 @@ class Bullet extends Phaser.Physics.Arcade.Sprite
         this.setActive(false);
         this.setVisible(false);
         this.body.setEnable(false);
+        this.hasBounced = false;
     }
 
     

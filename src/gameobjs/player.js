@@ -5,7 +5,7 @@ export class Player extends Entity
 {
     constructor(scene, x, y, texture, textureB, bulletTexture)
     {
-        super(scene, x, y, texture, textureB, bulletTexture);
+        super(scene, x, y, texture, textureB, bulletTexture, 30);
         
         this.body.setSize(16, 30);
 
@@ -18,6 +18,8 @@ export class Player extends Entity
         this.sKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
         this.dKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
 
+        this.lastShotTime = 0;
+        this.shootDelay = 225;
     }
 
     aim()
@@ -40,51 +42,65 @@ export class Player extends Entity
 
         if(mouseX <= body.x)
         {
-            this.movingRight = false;
+            this.flipX = false;
         }
         else
-        {
-            this.movingRight = true;
-        }
-
-        
-        if(this.movingRight)
         {
             this.flipX = true;
         }
-        else
-        {
-            this.flipX = false;
-        }
+
+
+
+        //debug area around player
+        
+        //this.graphics.strokeCircle(this.body.x + this.body.width / 2,  this.body.y + this.body.height / 2, 400);
         
     }
 
     shoot(scene) 
     {
-
+        let firing = false; // Track if the fire button is being held down
+    
+        // Initialize lastShotTime if it doesn't exist
+        if (this.lastShotTime === undefined) 
+        {
+            this.lastShotTime = 0;
+        }
+    
         scene.input.on('pointerdown', pointer => {
-
             if (this.health <= 0) return;
-
-            const mouseX = pointer.x; 
-            const mouseY = pointer.y;
-        
-            const body = this.body;
+            firing = true; // Start firing
+        });
     
-            const dir = [mouseX - (body.x + body.width /2), mouseY - (body.y + body.height / 2)];
-
-            const length = Math.sqrt(dir[0] ** 2 + dir[1] ** 2);
-            if (length > 0) 
-            {
-                dir[0] /= length;
-                dir[1] /= length;
+        scene.input.on('pointerup', pointer => {
+            firing = false; // Stop firing
+        });
+    
+        scene.events.on('update', (time, delta) => {
+            const currentTime = Date.now(); // Get current time each frame
+    
+            if (firing && (currentTime - this.lastShotTime) >= this.shootDelay) {
+                const mouseX = scene.input.x;
+                const mouseY = scene.input.y;
+    
+                const body = this.body;
+    
+                const dir = [mouseX - (body.x + body.width / 2), mouseY - (body.y + body.height / 2)];
+    
+                const length = Math.sqrt(dir[0] ** 2 + dir[1] ** 2);
+                if (length > 0) {
+                    dir[0] /= length;
+                    dir[1] /= length;
+                }
+    
+                const bulletSpeed = 800; 
+    
+                this.bulletGroup.fireBullet(body.x, body.y, body.width, body.height, dir[0] * bulletSpeed, dir[1] * bulletSpeed, false);
+                this.lastShotTime = currentTime; // Update last shot time after firing
             }
-    
-            const bulletSpeed = 500;//2400;
-    
-            this.bulletGroup.fireBullet(body.x , body.y, body.width, body.height ,dir[0] * bulletSpeed, dir[1] * bulletSpeed);
         });
     }
+    
     
 
     move()

@@ -3,9 +3,11 @@ import { BulletGroup } from "./bullets/bulletGroup.js";
 export class Entity extends Phaser.Physics.Arcade.Sprite 
 {
     
-    constructor(scene, x, y, texture, textureB, bulletTexture) 
+    constructor(scene, x, y, texture, textureB, bulletTexture, bulletCount) 
     {
         super(scene, x, y, texture);
+
+        this.bulletsAmmount = bulletCount;
 
         this.setDepth(2);
         this.scene = scene;
@@ -18,38 +20,40 @@ export class Entity extends Phaser.Physics.Arcade.Sprite
 
         this.health = 100;
 
-        this.bulletGroup = new BulletGroup(this.scene, bulletTexture);
+        this.bulletGroup = new BulletGroup(this.scene, bulletTexture, this.bulletsAmmount);
 
         this.hit = false;
 
         this.movingRight = false;
 
         this.bloodSprite = this.scene.add.sprite(this.x + this.width / 2, this.y + this.height / 2, textureB);
-        this.bloodSprite.setVisible(false); // Start hidden
+        this.bloodSprite.setVisible(false); 
+        
     }
+    
     
 
     preUpdate(time, delta) 
     {
         super.preUpdate(time, delta);
+                    
 
         if (this.health <= 0) 
         {
             // Hide the enemy sprite
-            this.setActive(false); // Deactivates the sprite
-            this.setVisible(false); // Makes it invisible
+            this.setActive(false); 
+            this.setVisible(false);
 
             // Stop physics interactions
             this.body.setEnable(false); 
 
-            // Show blood sprite and position it correctly
+
             this.bloodSprite.setVisible(true);
             this.bloodSprite.setPosition(this.x, this.y);
 
         }
         else
         {
-            // If still alive, ensure blood sprite is hidden
             this.bloodSprite.setVisible(false);
         }
         
