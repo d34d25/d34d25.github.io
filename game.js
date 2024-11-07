@@ -29,6 +29,7 @@ export class Game extends Phaser.Scene
     create()
     {
        
+        this.inIntermission = false;
 
         this.minutes;
 
@@ -89,6 +90,9 @@ export class Game extends Phaser.Scene
             this.timeText.setText(`TIME SURVIVED: ${this.minutes}:${this.seconds < 10 ? '0' : ''}${this.seconds}`);
 
             this.restartText.setText('You died! \n Press R to Restart');
+
+            this.timeText.setPosition((1280 - this.timeText.width) /2 , 600 /2);
+            this.restartText.setPosition((1280 - this.restartText.width)/2, 720/2);
             
             return;
         } 
@@ -133,9 +137,19 @@ export class Game extends Phaser.Scene
 
         let isSpecialRound = this.wave % 19 == 0;
 
+        if(this.inIntermission)
+        {
+            this.waveText.setPosition((1280 - this.waveText.width)/2 , 720/2);
+        }
+        else
+        {
+            this.waveText.setPosition(10,10);
+        }
+
         if (this.killedCount >= this.totalEnemies) 
         {
             // Increment the wave number
+            this.inIntermission = true;
             this.wave++;
        
 
@@ -143,7 +157,7 @@ export class Game extends Phaser.Scene
             this.waveText.setText('WAVE: ' + this.wave);
     
             this.time.delayedCall(4000, () => { //only affects the first spawn
-
+                this.inIntermission = false;
                 if(!isSpecialRound)
                 {
                     this.spawnEnemies();
@@ -348,5 +362,6 @@ export class Game extends Phaser.Scene
         });
 
     }
+
 }
 
