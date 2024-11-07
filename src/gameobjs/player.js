@@ -59,6 +59,8 @@ export class Player extends Entity
 
     shoot(scene) 
     {
+        if(this.health <= 0) return;
+
         let firing = false; // Track if the fire button is being held down
     
         // Initialize lastShotTime if it doesn't exist
@@ -77,6 +79,7 @@ export class Player extends Entity
         });
     
         scene.events.on('update', (time, delta) => {
+            if (this.health <= 0) return;
             const currentTime = Date.now(); // Get current time each frame
     
             if (firing && (currentTime - this.lastShotTime) >= this.shootDelay) {

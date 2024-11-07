@@ -85,8 +85,19 @@ export class Game extends Phaser.Scene
     update()
     {
     
+        if(this.inIntermission)
+        {
+            this.waveText.setPosition((1280 - this.waveText.width)/2 , 720/2);
+        }
+        else
+        {
+            this.waveText.setPosition(10,10);
+        }
+
         if (this.player.health <= 0)
         {
+            this.inIntermission = false;
+
             this.timeText.setText(`TIME SURVIVED: ${this.minutes}:${this.seconds < 10 ? '0' : ''}${this.seconds}`);
 
             this.restartText.setText('You died! \n Press R to Restart');
@@ -136,15 +147,6 @@ export class Game extends Phaser.Scene
         
 
         let isSpecialRound = this.wave % 19 == 0;
-
-        if(this.inIntermission)
-        {
-            this.waveText.setPosition((1280 - this.waveText.width)/2 , 720/2);
-        }
-        else
-        {
-            this.waveText.setPosition(10,10);
-        }
 
         if (this.killedCount >= this.totalEnemies) 
         {
